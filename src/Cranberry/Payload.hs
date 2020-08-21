@@ -33,10 +33,10 @@ data Payload = Payload
   , t  :: Maybe String
   }
 
-data MessageCreatePayload = MessageCreatePayload
+data Message = Message
   { channelId :: String
   , content   :: String
   }
 
 deriveJSON defaultOptions ''Payload
-deriveJSON defaultOptions{fieldLabelModifier = toQuietSnake . fromHumps} ''MessageCreatePayload
+deriveJSON defaultOptions{fieldLabelModifier = toQuietSnake . fromHumps} ''Message
