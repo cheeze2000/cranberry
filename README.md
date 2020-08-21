@@ -1,2 +1,2 @@
 # cranberry
-a Discord bot written in Haskell that responds with "pong!" every time someone sends a "ping"
+rewrite complete! the bot still responds with "pong!" every time someone says "ping"

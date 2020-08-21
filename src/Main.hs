@@ -1,6 +1,6 @@
 module Main where
 
-import WebSocket
+import Cranberry.WebSocket (client)
 
 main :: IO ()
 main = client

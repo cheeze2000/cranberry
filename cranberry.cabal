@@ -1,0 +1,26 @@
+cabal-version:       >=1.10
+
+name:                cranberry
+version:             0.1.0.0
+license-file:        LICENSE
+author:              Nicholas
+maintainer:          me@cheeze2000.net
+build-type:          Simple
+extra-source-files:  README.md
+
+executable cranberry
+  main-is:             Main.hs
+  other-modules:       Cranberry.Event
+                     , Cranberry.Payload
+                     , Cranberry.Request
+                     , Cranberry.WebSocket
+  build-depends:       base >=4.13 && <4.14
+                     , aeson
+                     , bytestring
+                     , casing
+                     , req
+                     , text
+                     , websockets
+                     , wuss
+  hs-source-dirs:      src
+  default-language:    Haskell2010

@@ -1,26 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Payload where
+module Cranberry.Payload where
 
 import Data.Aeson
 import Data.Aeson.TH
 import Text.Casing (fromHumps, toQuietSnake)
 
-data Payload = Payload
-  { op :: Int
-  , t  :: Maybe String
-  }
-
-data MessageCreatePayload = MessageCreatePayload
-  { channelId :: String
-  , content   :: String
-  }
-
-heartbeatPayload :: Value
-heartbeatPayload = object
+heartbeatPayload :: Int -> Value
+heartbeatPayload seq = object
   [ "op" .= (1 :: Int)
-  , "d"  .= (0 :: Int)
+  , "d"  .= (seq :: Int)
   ]
 
 identifyPayload :: String -> Value
@@ -35,6 +25,18 @@ identifyPayload token = object
       ]
     ]
   ]
+
+data Payload = Payload
+  { op :: Int
+  , d  :: Maybe Value
+  , s  :: Maybe Int
+  , t  :: Maybe String
+  }
+
+data MessageCreatePayload = MessageCreatePayload
+  { channelId :: String
+  , content   :: String
+  }
 
 deriveJSON defaultOptions ''Payload
 deriveJSON defaultOptions{fieldLabelModifier = toQuietSnake . fromHumps} ''MessageCreatePayload
