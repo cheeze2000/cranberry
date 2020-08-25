@@ -37,8 +37,9 @@ app conn = do
     case op payload of
       0  -> let
               eventType = fromJust $ t payload
-              eventData = encode .fromJust $ d payload
-            in handleEvent token eventType eventData
+              eventData = encode . fromJust $ d payload
+            in
+              handleEvent token eventType eventData
       10 -> forkIO (heartbeat ref conn)
          >> forkIO (identify token conn)
          >> return ()
