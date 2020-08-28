@@ -11,6 +11,7 @@ import Data.ByteString.Lazy (ByteString)
 import Data.List (isPrefixOf)
 import Data.Maybe (fromJust)
 
+type Args = [String]
 type Command = String
 type EventData = ByteString
 type EventType = String
@@ -28,17 +29,17 @@ onMessageCreate d = do
   let c = content msg
   when (prefix `isPrefixOf` c) $
     let
-      xs = parse $ drop (length prefix) c
+      (x, y) = parse $ drop (length prefix) c
     in
-      handleCommand msg xs
+      handleCommand x y msg
 
-handleCommand :: Message -> (Command, [String]) -> Action
-handleCommand m ("emoji", xs) = createMessage (channelId m) url
+handleCommand :: Command -> Args -> Message -> Action
+handleCommand "emoji" xs m = createMessage (channelId m) url
   where url = "https://cdn.discordapp.com/emojis/"
            ++ takeWhile isDigit (dropWhile (not . isDigit) $ unwords xs)
            ++ ".png?size=1024"
-handleCommand m ("ping", _) = createMessage (channelId m) "pong!"
-handleCommand _ _ = return ()
+handleCommand "ping" _ m = createMessage (channelId m) "pong!"
+handleCommand _ _ _ = return ()
 
 handleEvent :: EventType -> EventData -> Token -> IO ()
 handleEvent t d token = do
