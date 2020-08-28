@@ -35,9 +35,13 @@ onMessageCreate d = do
 
 handleCommand :: Command -> Args -> Message -> Action
 handleCommand "emoji" xs m = createMessage (channelId m) url
-  where url = "https://cdn.discordapp.com/emojis/"
-           ++ takeWhile isDigit (dropWhile (not . isDigit) $ unwords xs)
-           ++ ".png?size=1024"
+  where
+    x = head xs
+    e = if x !! 1 == 'a' then ".gif" else ".png"
+    url = "https://cdn.discordapp.com/emojis/"
+        ++ takeWhile isDigit (dropWhile (not . isDigit) x)
+        ++ e
+        ++ "?size=1024"
 handleCommand "ping" _ m = createMessage (channelId m) "pong!"
 handleCommand _ _ _ = return ()
 
