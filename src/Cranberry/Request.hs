@@ -4,6 +4,7 @@
 module Cranberry.Request where
 
 import Control.Exception (catch)
+import Control.Monad.Reader (ReaderT, asks)
 import Control.Monad.IO.Class (liftIO)
 import Data.Aeson (Value, object, (.=))
 import Data.ByteString (ByteString, append)
@@ -11,6 +12,9 @@ import Data.ByteString.Internal (packChars)
 import Data.Text (pack)
 import Network.HTTP.Req
 
+data Bot = Bot { token :: Token }
+
+type Action = ReaderT Bot IO ()
 type ChannelId = String
 type Token = String
 
@@ -24,7 +28,7 @@ authHeader t = header "Authorization" (append "Bot " t)
 createMessage' :: Token -> ChannelId -> String -> IO ()
 createMessage' t c s = runReq defaultHttpConfig $ do
   let url = apiUrl /: "channels" /: (pack c) /: "messages"
-  res <- req
+  _ <- req
     POST
     url
     (ReqBodyJson $ object ["content" .= s])
@@ -32,8 +36,10 @@ createMessage' t c s = runReq defaultHttpConfig $ do
     (authHeader $ packChars t) :: Req (JsonResponse Value)
   liftIO $ return ()
 
-createMessage :: Token -> ChannelId -> String -> IO ()
-createMessage t c s = catch (createMessage' t c s) logError
+createMessage :: ChannelId -> String -> Action
+createMessage c s = do
+  t <- asks token
+  liftIO $ catch (createMessage' t c s) logError
 
 logError :: HttpException -> IO ()
 logError = print

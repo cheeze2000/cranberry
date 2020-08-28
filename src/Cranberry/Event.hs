@@ -3,7 +3,9 @@ module Cranberry.Event where
 import Cranberry.Payload
 import Cranberry.Request
 
-import Data.Aeson (Value, decode, encode)
+import Control.Monad (when)
+import Control.Monad.Reader (runReaderT)
+import Data.Aeson (decode)
 import Data.Char (isDigit)
 import Data.ByteString.Lazy (ByteString)
 import Data.List (isPrefixOf)
@@ -20,25 +22,27 @@ parse xs = (y, ys)
 prefix :: String
 prefix = "c."
 
-onMessageCreate :: Token -> EventData -> IO ()
-onMessageCreate token d = do
+onMessageCreate :: EventData -> Action
+onMessageCreate d = do
   let msg = fromJust $ decode d :: Message
   let c = content msg
-  if prefix `isPrefixOf` c
-    then handleCommand token msg . parse . drop 2 $ c
-    else return ()
+  when (prefix `isPrefixOf` c) $
+    let
+      xs = parse $ drop (length prefix) c
+    in
+      handleCommand msg xs
 
-handleCommand :: Token -> Message -> (Command, [String]) -> IO ()
-handleCommand t m ("emoji", xs) = createMessage t (channelId m) url
+handleCommand :: Message -> (Command, [String]) -> Action
+handleCommand m ("emoji", xs) = createMessage (channelId m) url
   where url = "https://cdn.discordapp.com/emojis/"
            ++ takeWhile isDigit (dropWhile (not . isDigit) $ unwords xs)
            ++ ".png?size=1024"
-handleCommand t m ("ping", _) = createMessage t (channelId m) "pong!"
-handleCommand t m _ = return ()
+handleCommand m ("ping", _) = createMessage (channelId m) "pong!"
+handleCommand _ _ = return ()
 
-handleEvent :: Token -> EventType -> EventData -> IO ()
-handleEvent token t d = do
-  putStrLn t
+handleEvent :: EventType -> EventData -> Token -> IO ()
+handleEvent t d token = do
+  let bot = Bot { token = token }
   case t of
-    "MESSAGE_CREATE" -> onMessageCreate token d
+    "MESSAGE_CREATE" -> runReaderT (onMessageCreate d) bot
     _                -> return ()
