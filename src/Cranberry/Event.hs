@@ -2,11 +2,11 @@ module Cranberry.Event where
 
 import Cranberry.Payload
 import Cranberry.Request
+import Cranberry.Utils (emoteUrl)
 
 import Control.Monad (when)
 import Control.Monad.Reader (runReaderT)
 import Data.Aeson (decode)
-import Data.Char (isDigit)
 import Data.ByteString.Lazy (ByteString)
 import Data.List (isPrefixOf)
 import Data.Maybe (fromJust)
@@ -34,14 +34,11 @@ onMessageCreate d = do
       handleCommand x y msg
 
 handleCommand :: Command -> Args -> Message -> Action
-handleCommand "emoji" xs m = createMessage (channelId m) url
-  where
-    x = head xs
-    e = if x !! 1 == 'a' then ".gif" else ".png"
-    url = "https://cdn.discordapp.com/emojis/"
-        ++ takeWhile isDigit (dropWhile (not . isDigit) x)
-        ++ e
-        ++ "?size=1024"
+handleCommand "emoji" xs m = if url == []
+  then return ()
+  else createMessage (channelId m) url
+    where
+      url = emoteUrl $ head xs
 handleCommand "ping" _ m = createMessage (channelId m) "pong!"
 handleCommand _ _ _ = return ()
 
